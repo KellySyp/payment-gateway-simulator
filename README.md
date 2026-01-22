@@ -1,3 +1,5 @@
+This project simulates a payment gateway used by merchants to process card transactions. It supports authorization, capture, refund, and void operations while returning realistic response codes and errors used in production payment systems.
+
 # Payment Gateway Simulator
 
 A Java-based payment gateway simulator that supports authorization, capture, refund, and void transaction flows with realistic payment responses.
