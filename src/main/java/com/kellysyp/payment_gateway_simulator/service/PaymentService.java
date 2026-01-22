@@ -74,4 +74,31 @@ public class PaymentService {
                 "Approved"
         );
     }
+
+    public PaymentResponse capture(String transactionId) {
+
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        if (transaction.getStatus() != TransactionStatus.AUTHORIZED) {
+            return new PaymentResponse(
+                    transaction.getTransactionId(),
+                    transaction.getStatus().name(),
+                    transaction.getAuthCode(),
+                    "12",
+                    "Invalid transaction state for capture"
+            );
+        }
+
+        transaction.setStatus(TransactionStatus.CAPTURED);
+        transactionRepository.save(transaction);
+
+        return new PaymentResponse(
+                transaction.getTransactionId(),
+                "CAPTURED",
+                transaction.getAuthCode(),
+                "00",
+                "Capture successful"
+        );
+    }
 }

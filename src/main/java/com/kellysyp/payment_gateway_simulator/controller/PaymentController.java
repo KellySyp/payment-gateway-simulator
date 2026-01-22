@@ -3,6 +3,7 @@ package com.kellysyp.payment_gateway_simulator.controller;
 import com.kellysyp.payment_gateway_simulator.dto.PaymentRequest;
 import com.kellysyp.payment_gateway_simulator.dto.PaymentResponse;
 import com.kellysyp.payment_gateway_simulator.service.PaymentService;
+import com.kellysyp.payment_gateway_simulator.dto.CaptureRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,14 @@ public class PaymentController {
             @RequestBody PaymentRequest request
     ) {
         PaymentResponse response = paymentService.authorize(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/capture")
+    public ResponseEntity<PaymentResponse> capture(
+            @RequestBody CaptureRequest request
+    ) {
+        PaymentResponse response = paymentService.capture(request.getTransactionId());
         return ResponseEntity.ok(response);
     }
 }
