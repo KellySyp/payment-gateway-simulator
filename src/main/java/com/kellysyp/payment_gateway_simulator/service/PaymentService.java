@@ -128,4 +128,31 @@ public class PaymentService {
         );
     }
 
+    public PaymentResponse refund(String transactionId) {
+
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        if (transaction.getStatus() != TransactionStatus.CAPTURED) {
+            return new PaymentResponse(
+                    transaction.getTransactionId(),
+                    transaction.getStatus().name(),
+                    transaction.getAuthCode(),
+                    "12",
+                    "Invalid transaction state for refund"
+            );
+        }
+
+        transaction.setStatus(TransactionStatus.REFUNDED);
+        transactionRepository.save(transaction);
+
+        return new PaymentResponse(
+                transaction.getTransactionId(),
+                "REFUNDED",
+                transaction.getAuthCode(),
+                "00",
+                "Refund successful"
+        );
+    }
+
 }
