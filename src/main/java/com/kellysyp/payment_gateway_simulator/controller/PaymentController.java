@@ -4,6 +4,7 @@ import com.kellysyp.payment_gateway_simulator.dto.PaymentRequest;
 import com.kellysyp.payment_gateway_simulator.dto.PaymentResponse;
 import com.kellysyp.payment_gateway_simulator.service.PaymentService;
 import com.kellysyp.payment_gateway_simulator.dto.CaptureRequest;
+import com.kellysyp.payment_gateway_simulator.dto.VoidRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,4 +33,12 @@ public class PaymentController {
         PaymentResponse response = paymentService.capture(request.getTransactionId());
         return ResponseEntity.ok(response);
     }
+    @PostMapping("/void")
+    public ResponseEntity<PaymentResponse> voidAuthorization(
+            @RequestBody VoidRequest request
+    ) {
+        PaymentResponse response = paymentService.voidAuthorization(request.getTransactionId());
+        return ResponseEntity.ok(response);
+    }
+
 }

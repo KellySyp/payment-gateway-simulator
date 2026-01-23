@@ -101,4 +101,31 @@ public class PaymentService {
                 "Capture successful"
         );
     }
+    public PaymentResponse voidAuthorization(String transactionId) {
+
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        if (transaction.getStatus() != TransactionStatus.AUTHORIZED) {
+            return new PaymentResponse(
+                    transaction.getTransactionId(),
+                    transaction.getStatus().name(),
+                    transaction.getAuthCode(),
+                    "12",
+                    "Invalid transaction state for void"
+            );
+        }
+
+        transaction.setStatus(TransactionStatus.VOIDED);
+        transactionRepository.save(transaction);
+
+        return new PaymentResponse(
+                transaction.getTransactionId(),
+                "VOIDED",
+                transaction.getAuthCode(),
+                "00",
+                "Authorization voided"
+        );
+    }
+
 }
