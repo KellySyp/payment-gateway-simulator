@@ -2,10 +2,12 @@ package com.kellysyp.payment_gateway_simulator.controller;
 
 import com.kellysyp.payment_gateway_simulator.dto.PaymentRequest;
 import com.kellysyp.payment_gateway_simulator.dto.PaymentResponse;
+import com.kellysyp.payment_gateway_simulator.model.Transaction;
 import com.kellysyp.payment_gateway_simulator.service.PaymentService;
 import com.kellysyp.payment_gateway_simulator.dto.CaptureRequest;
 import com.kellysyp.payment_gateway_simulator.dto.VoidRequest;
 import com.kellysyp.payment_gateway_simulator.dto.RefundRequest;
+import com.kellysyp.payment_gateway_simulator.service.TransactionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

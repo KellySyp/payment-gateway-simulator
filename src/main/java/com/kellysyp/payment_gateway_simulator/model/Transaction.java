@@ -16,6 +16,12 @@ public class Transaction {
 
     private BigDecimal amount;
 
+    private BigDecimal authorizedAmount;
+
+    private BigDecimal capturedAmount;
+
+    private BigDecimal refundedAmount;
+
     private String currency;
 
     @Enumerated(EnumType.STRING)
@@ -34,6 +40,7 @@ public class Transaction {
     private String terminal;
 
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public Transaction() {
         this.transactionId = UUID.randomUUID().toString();
@@ -52,6 +59,24 @@ public class Transaction {
 
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+
+    public BigDecimal getAuthorizedAmount() {return authorizedAmount;}
+
+    public void setAuthorizedAmount(BigDecimal authorizedAmount) {
+        this.authorizedAmount = authorizedAmount;
+    }
+
+    public BigDecimal getCapturedAmount() {return capturedAmount;}
+
+    public void setCapturedAmount(BigDecimal capturedAmount) {
+        this.capturedAmount = capturedAmount;
+    }
+
+    public BigDecimal getRefundedAmount() {return refundedAmount;}
+
+    public void setRefundedAmount(BigDecimal refundedAmount) {
+        this.refundedAmount = refundedAmount;
     }
 
     public String getCurrency() {
@@ -121,4 +146,6 @@ public class Transaction {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt;}
 }
