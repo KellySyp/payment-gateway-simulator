@@ -1,5 +1,6 @@
 package com.kellysyp.payment_gateway_simulator.service;
 
+import com.kellysyp.payment_gateway_simulator.exception.TransactionNotFoundException;
 import com.kellysyp.payment_gateway_simulator.model.Transaction;
 import com.kellysyp.payment_gateway_simulator.repository.TransactionRepository;
 import org.springframework.http.HttpStatus;
@@ -18,10 +19,7 @@ public class TransactionService {
     public Transaction getTransaction(String transactionId) {
         return repository.findById(transactionId)
                 .orElseThrow(() ->
-                        new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Transaction not found"
-                        )
+                    new TransactionNotFoundException(transactionId)
                 );
     }
 }

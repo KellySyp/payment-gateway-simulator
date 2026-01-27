@@ -2,6 +2,7 @@ package com.kellysyp.payment_gateway_simulator.service;
 
 import com.kellysyp.payment_gateway_simulator.dto.PaymentRequest;
 import com.kellysyp.payment_gateway_simulator.dto.PaymentResponse;
+import com.kellysyp.payment_gateway_simulator.exception.InvalidRefundAmountException;
 import com.kellysyp.payment_gateway_simulator.model.Transaction;
 import com.kellysyp.payment_gateway_simulator.model.TransactionStatus;
 import com.kellysyp.payment_gateway_simulator.repository.TransactionRepository;
@@ -169,13 +170,13 @@ public class PaymentService {
 
     public Transaction refund(String transactionId, BigDecimal refundAmount) {
 
-        Transaction tx = transactionRepository.findById(transactionId)
+        Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Transaction not found"));
 
         // Validate status
-        if (!(tx.getStatus() == TransactionStatus.CAPTURED
-                || tx.getStatus() == TransactionStatus.PARTIALLY_REFUNDED)) {
+        if (!(transaction.getStatus() == TransactionStatus.CAPTURED
+                || transaction.getStatus() == TransactionStatus.PARTIALLY_REFUNDED)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Transaction is not refundable");
@@ -183,30 +184,30 @@ public class PaymentService {
 
         //Validate amount
         BigDecimal remaining =
-                tx.getCapturedAmount().subtract(tx.getRefundedAmount());
+                transaction.getCapturedAmount().subtract(transaction.getRefundedAmount());
 
         if (refundAmount.compareTo(remaining) > 0) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Refund amount exceeds remaining captured amount");
+            throw new InvalidRefundAmountException(
+                    "Refund exceeds captured amount"
+            );
         }
 
         // Apply refund
         BigDecimal newRefunded =
-                tx.getRefundedAmount().add(refundAmount);
+                transaction.getRefundedAmount().add(refundAmount);
 
-        tx.setRefundedAmount(newRefunded);
+        transaction.setRefundedAmount(newRefunded);
 
         //Update status
-        if (newRefunded.compareTo(tx.getCapturedAmount()) == 0) {
-            tx.setStatus(TransactionStatus.REFUNDED);
+        if (newRefunded.compareTo(transaction.getCapturedAmount()) == 0) {
+            transaction.setStatus(TransactionStatus.REFUNDED);
         } else {
-            tx.setStatus(TransactionStatus.PARTIALLY_REFUNDED);
+            transaction.setStatus(TransactionStatus.PARTIALLY_REFUNDED);
         }
 
-        tx.setUpdatedAt(LocalDateTime.now());
+        transaction.setUpdatedAt(LocalDateTime.now());
 
-        return transactionRepository.save(tx);
+        return transactionRepository.save(transaction);
     }
 
 }
