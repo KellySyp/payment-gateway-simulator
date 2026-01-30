@@ -153,14 +153,17 @@ public class PaymentService {
     public Transaction refund(String transactionId, BigDecimal refundAmount) {
 
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Transaction not found"));
+                .orElseThrow(() -> new TransactionNotFoundException(transactionId));
 
         if (!(transaction.getStatus() == TransactionStatus.CAPTURED
                 || transaction.getStatus() == TransactionStatus.PARTIALLY_REFUNDED)) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Transaction is not refundable");
+            throw new InvalidTransactionStateException(
+                    "Invalid state for refund."
+            );
+        }
+
+        if (refundAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidRefundAmountException("Amount must be greater than zero");
         }
 
         BigDecimal remaining =
