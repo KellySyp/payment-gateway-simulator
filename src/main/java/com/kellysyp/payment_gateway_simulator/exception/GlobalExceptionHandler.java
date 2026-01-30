@@ -4,9 +4,12 @@ import com.kellysyp.payment_gateway_simulator.dto.ApiError;
 import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.stream.Collectors;
 
 @Hidden
 @RestControllerAdvice
@@ -34,6 +37,48 @@ public class GlobalExceptionHandler {
                         "INVALID_REFUND",
                         ex.getMessage()
                 ));
+    }
+
+    @ExceptionHandler(InvalidCaptureAmountException.class)
+    public ResponseEntity<ApiError> handleInvalidCapture(
+            InvalidCaptureAmountException ex) {
+
+        return ResponseEntity
+                .badRequest()
+                .body(new ApiError("INVALID_CAPTURE", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidPaymentException.class)
+    public ResponseEntity<ApiError> handleInvalidPayment(
+            InvalidPaymentException ex) {
+
+        return ResponseEntity
+                .badRequest()
+                .body(new ApiError("INVALID_PAYMENT", ex.getMessage()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiError> handleValidationErrors(
+            MethodArgumentNotValidException ex) {
+
+        String message = ex.getBindingResult()
+                .getAllErrors()
+                .stream()
+                .map(error -> error.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiError("VALIDATION_ERROR", message));
+    }
+
+    @ExceptionHandler(InvalidTransactionStateException.class)
+    public ResponseEntity<ApiError> handleInvalidState(
+            InvalidTransactionStateException ex) {
+
+        return ResponseEntity
+                .badRequest()
+                .body(new ApiError("INVALID_STATE", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

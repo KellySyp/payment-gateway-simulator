@@ -1,9 +1,16 @@
 package com.kellysyp.payment_gateway_simulator.dto;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 import java.math.BigDecimal;
 
 public class PaymentRequest {
 
+    @NotNull(message = "Amount is required")
+    @Positive
+    @DecimalMin(value = "0.01", message = "Amount must be greater than zero")
     private BigDecimal amount;
     private String currency;
     private String cardLast4;

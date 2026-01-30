@@ -4,13 +4,16 @@ import com.kellysyp.payment_gateway_simulator.dto.*;
 import com.kellysyp.payment_gateway_simulator.model.Transaction;
 import com.kellysyp.payment_gateway_simulator.service.PaymentService;
 import com.kellysyp.payment_gateway_simulator.service.TransactionService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
 @RequestMapping("/api/payments")
+@Validated
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -21,7 +24,7 @@ public class PaymentController {
 
     @PostMapping("/authorize")
     public ResponseEntity<PaymentResponse> authorize(
-            @RequestBody PaymentRequest request
+           @Valid @RequestBody PaymentRequest request
     ) {
         PaymentResponse response = paymentService.authorize(request);
         log.info("Authorize request received for amount={}", request.getAmount());
@@ -30,14 +33,14 @@ public class PaymentController {
 
     @PostMapping("/capture")
     public ResponseEntity<PaymentResponse> capture(
-            @RequestBody CaptureRequest request
+           @Valid @RequestBody CaptureRequest request
     ) {
         PaymentResponse response = paymentService.capture(request.getTransactionId());
         return ResponseEntity.ok(response);
     }
     @PostMapping("/void")
     public ResponseEntity<PaymentResponse> voidAuthorization(
-            @RequestBody VoidRequest request
+            @Valid @RequestBody VoidRequest request
     ) {
         PaymentResponse response = paymentService.voidAuthorization(request.getTransactionId());
         return ResponseEntity.ok(response);
@@ -54,7 +57,7 @@ public class PaymentController {
     @PostMapping("/transactions/{id}/refund")
     public TransactionResponse refund(
             @PathVariable String id,
-            @RequestBody RefundRequest request) {
+            @Valid @RequestBody RefundRequest request) {
 
         Transaction tx = paymentService.refund(id, request.getAmount());
         log.info("Refund request received for transactionId={}, amount={}",

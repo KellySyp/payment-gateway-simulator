@@ -2,7 +2,7 @@ package com.kellysyp.payment_gateway_simulator.service;
 
 import com.kellysyp.payment_gateway_simulator.dto.PaymentRequest;
 import com.kellysyp.payment_gateway_simulator.dto.PaymentResponse;
-import com.kellysyp.payment_gateway_simulator.exception.InvalidRefundAmountException;
+import com.kellysyp.payment_gateway_simulator.exception.*;
 import com.kellysyp.payment_gateway_simulator.model.Transaction;
 import com.kellysyp.payment_gateway_simulator.model.TransactionStatus;
 import com.kellysyp.payment_gateway_simulator.repository.TransactionRepository;
@@ -67,6 +67,10 @@ public class PaymentService {
             );
         }
 
+        if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidPaymentException("Amount must be greater than zero");
+        }
+
         // Simulated approval
         String authCode = String.valueOf(100000 + new Random().nextInt(900000));
 
@@ -89,15 +93,17 @@ public class PaymentService {
     public PaymentResponse capture(String transactionId) {
 
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new TransactionNotFoundException(transactionId));
 
         if (transaction.getStatus() != TransactionStatus.AUTHORIZED) {
-            return new PaymentResponse(
-                    transaction.getTransactionId(),
-                    transaction.getStatus().name(),
-                    transaction.getAuthCode(),
-                    "12",
-                    "Invalid transaction state for capture"
+            throw new InvalidTransactionStateException(
+                    "Only authorized transactions can be captured"
+            );
+        }
+
+        if (transaction.getAuthorizedAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidCaptureAmountException(
+                    "Authorized amount must be greater than zero"
             );
         }
 
@@ -119,7 +125,7 @@ public class PaymentService {
     public PaymentResponse voidAuthorization(String transactionId) {
 
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new TransactionNotFoundException(transactionId));
 
         if (transaction.getStatus() != TransactionStatus.AUTHORIZED) {
             return new PaymentResponse(
@@ -149,7 +155,7 @@ public class PaymentService {
     public PaymentResponse refund(String transactionId) {
 
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new TransactionNotFoundException(transactionId));
 
         if (transaction.getStatus() != TransactionStatus.CAPTURED) {
             return new PaymentResponse(
