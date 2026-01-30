@@ -9,12 +9,14 @@ import com.kellysyp.payment_gateway_simulator.repository.TransactionRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Random;
 
 @Service
+@Slf4j
 public class PaymentService {
 
     private final TransactionRepository transactionRepository;
@@ -103,6 +105,8 @@ public class PaymentService {
         transaction.setUpdatedAt(LocalDateTime.now());
         transaction.setStatus(TransactionStatus.CAPTURED);
         transactionRepository.save(transaction);
+        log.info("Transaction captured. transactionId={}, amount={}",
+                transaction.getTransactionId(), transaction.getCapturedAmount());
 
         return new PaymentResponse(
                 transaction.getTransactionId(),
@@ -131,6 +135,8 @@ public class PaymentService {
         transaction.setUpdatedAt(LocalDateTime.now());
         transactionRepository.save(transaction);
 
+        log.info("Transaction voided. transactionId={}, amount={}",
+                transaction.getTransactionId(), transaction.getAuthorizedAmount());
         return new PaymentResponse(
                 transaction.getTransactionId(),
                 "VOIDED",
@@ -187,6 +193,8 @@ public class PaymentService {
                 transaction.getCapturedAmount().subtract(transaction.getRefundedAmount());
 
         if (refundAmount.compareTo(remaining) > 0) {
+            log.warn("Refund exceeds captured amount. transactionId={}, requested={}, captured={}",
+                    transaction.getTransactionId(), refundAmount, transaction.getCapturedAmount());
             throw new InvalidRefundAmountException(
                     "Refund exceeds captured amount"
             );

@@ -6,8 +6,10 @@ import com.kellysyp.payment_gateway_simulator.service.PaymentService;
 import com.kellysyp.payment_gateway_simulator.service.TransactionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
+@Slf4j
 @RequestMapping("/api/payments")
 public class PaymentController {
 
@@ -22,6 +24,7 @@ public class PaymentController {
             @RequestBody PaymentRequest request
     ) {
         PaymentResponse response = paymentService.authorize(request);
+        log.info("Authorize request received for amount={}", request.getAmount());
         return ResponseEntity.ok(response);
     }
 
@@ -54,6 +57,8 @@ public class PaymentController {
             @RequestBody RefundRequest request) {
 
         Transaction tx = paymentService.refund(id, request.getAmount());
+        log.info("Refund request received for transactionId={}, amount={}",
+                id, request.getAmount());
         return TransactionResponse.from(tx);
     }
 

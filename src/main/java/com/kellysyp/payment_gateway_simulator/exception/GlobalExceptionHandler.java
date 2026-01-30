@@ -6,8 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import lombok.extern.slf4j.Slf4j;
 
+@Hidden
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(TransactionNotFoundException.class)
@@ -37,6 +40,7 @@ public class GlobalExceptionHandler {
     @Hidden
     public ResponseEntity<ApiError> handleGeneralException(Exception ex) {
         ApiError error = new ApiError("INTERNAL_ERROR", "Unexpected error occurred");
+        log.error("Unhandled exception occurred", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

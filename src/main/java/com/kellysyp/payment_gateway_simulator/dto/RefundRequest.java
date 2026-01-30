@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class RefundRequest {
 
-    //private String transactionId;
+    private String transactionId;
     private BigDecimal amount;
 
     /*public String getTransactionId() {
