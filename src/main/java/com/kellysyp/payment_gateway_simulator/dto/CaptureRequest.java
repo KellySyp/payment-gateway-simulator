@@ -12,7 +12,6 @@ public class CaptureRequest {
     @NotNull(message = "Capture amount is required")
     @DecimalMin(value = "0.01", message = "Capture amount must be greater than zero")
     private String transactionId;
-    //private BigDecimal amount;
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;

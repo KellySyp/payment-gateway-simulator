@@ -27,8 +27,6 @@ public class PaymentService {
 
     public PaymentResponse authorize(PaymentRequest request) {
 
-        System.out.println("Amount: " + request.getAmount());
-
         Transaction transaction = new Transaction();
         transaction.setCapturedAmount(BigDecimal.ZERO);
         transaction.setRefundedAmount(BigDecimal.ZERO);
@@ -40,14 +38,6 @@ public class PaymentService {
         transaction.setStore(request.getStore());
         transaction.setTerminal(request.getTerminal());
 
-        if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidPaymentException("Amount must be greater than zero");
-        }
-       /* if (request.getAmount() == null) {
-            throw new InvalidPaymentException("Amount is required");
-        }*/
-
-        // Simulated decline rules
         if (request.getAmount().doubleValue() > 500) {
             transaction.setStatus(TransactionStatus.DECLINED);
             transaction.setResponseCode("51");
@@ -76,8 +66,10 @@ public class PaymentService {
             );
         }
 
+        if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidPaymentException("Amount must be greater than zero");
+        }
 
-        // Simulated approval
         String authCode = String.valueOf(100000 + new Random().nextInt(900000));
 
         transaction.setStatus(TransactionStatus.AUTHORIZED);
@@ -158,59 +150,19 @@ public class PaymentService {
         );
     }
 
-    /*public PaymentResponse refund(String transactionId) {
-
-        Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new TransactionNotFoundException(transactionId));
-
-        if (transaction.getStatus() != TransactionStatus.CAPTURED) {
-            return new PaymentResponse(
-                    transaction.getTransactionId(),
-                    transaction.getStatus().name(),
-                    transaction.getAuthCode(),
-                    "12",
-                    "Invalid transaction state for refund"
-            );
-        }
-
-        transaction.setStatus(TransactionStatus.REFUNDED);
-        transaction.setUpdatedAt(LocalDateTime.now());
-        transactionRepository.save(transaction);
-
-        return new PaymentResponse(
-                transaction.getTransactionId(),
-                "REFUNDED",
-                transaction.getAuthCode(),
-                "00",
-                "Refund successful"
-        );
-    }*/
-
     public Transaction refund(String transactionId, BigDecimal refundAmount) {
 
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new TransactionNotFoundException(transactionId));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Transaction not found"));
 
         if (!(transaction.getStatus() == TransactionStatus.CAPTURED
-                || transaction.getStatus() == TransactionStatus.PARTIALLY_REFUNDED)) {
-            throw new InvalidTransactionStateException(
-                    "Invalid State for Refund"
-            );
-        }
-
-        if (transaction.getRefundedAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidPaymentException("Amount must be greater than zero");
-        }
-
-        // Validate status
-       /* if (!(transaction.getStatus() == TransactionStatus.CAPTURED
                 || transaction.getStatus() == TransactionStatus.PARTIALLY_REFUNDED)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Transaction is not refundable");
-        }*/
+        }
 
-        //Validate amount
         BigDecimal remaining =
                 transaction.getCapturedAmount().subtract(transaction.getRefundedAmount());
 
@@ -222,13 +174,11 @@ public class PaymentService {
             );
         }
 
-        // Apply refund
         BigDecimal newRefunded =
                 transaction.getRefundedAmount().add(refundAmount);
 
         transaction.setRefundedAmount(newRefunded);
 
-        //Update status
         if (newRefunded.compareTo(transaction.getCapturedAmount()) == 0) {
             transaction.setStatus(TransactionStatus.REFUNDED);
         } else {
