@@ -27,6 +27,8 @@ public class PaymentService {
 
     public PaymentResponse authorize(PaymentRequest request) {
 
+        System.out.println("Amount: " + request.getAmount());
+
         Transaction transaction = new Transaction();
         transaction.setCapturedAmount(BigDecimal.ZERO);
         transaction.setRefundedAmount(BigDecimal.ZERO);
@@ -37,6 +39,13 @@ public class PaymentService {
         transaction.setCardBrand(request.getCardBrand());
         transaction.setStore(request.getStore());
         transaction.setTerminal(request.getTerminal());
+
+        if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidPaymentException("Amount must be greater than zero");
+        }
+       /* if (request.getAmount() == null) {
+            throw new InvalidPaymentException("Amount is required");
+        }*/
 
         // Simulated decline rules
         if (request.getAmount().doubleValue() > 500) {
@@ -67,9 +76,6 @@ public class PaymentService {
             );
         }
 
-        if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidPaymentException("Amount must be greater than zero");
-        }
 
         // Simulated approval
         String authCode = String.valueOf(100000 + new Random().nextInt(900000));
@@ -152,7 +158,7 @@ public class PaymentService {
         );
     }
 
-    public PaymentResponse refund(String transactionId) {
+    /*public PaymentResponse refund(String transactionId) {
 
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new TransactionNotFoundException(transactionId));
@@ -178,21 +184,31 @@ public class PaymentService {
                 "00",
                 "Refund successful"
         );
-    }
+    }*/
 
     public Transaction refund(String transactionId, BigDecimal refundAmount) {
 
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Transaction not found"));
+                .orElseThrow(() -> new TransactionNotFoundException(transactionId));
+
+        if (!(transaction.getStatus() == TransactionStatus.CAPTURED
+                || transaction.getStatus() == TransactionStatus.PARTIALLY_REFUNDED)) {
+            throw new InvalidTransactionStateException(
+                    "Invalid State for Refund"
+            );
+        }
+
+        if (transaction.getRefundedAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidPaymentException("Amount must be greater than zero");
+        }
 
         // Validate status
-        if (!(transaction.getStatus() == TransactionStatus.CAPTURED
+       /* if (!(transaction.getStatus() == TransactionStatus.CAPTURED
                 || transaction.getStatus() == TransactionStatus.PARTIALLY_REFUNDED)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Transaction is not refundable");
-        }
+        }*/
 
         //Validate amount
         BigDecimal remaining =
